@@ -41,5 +41,8 @@
 
 /* prototype */
 int mainloop();
+int fetch_opcode();
+int decode_opcode();
+int execute_opcode();
 
 #endif
