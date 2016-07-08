@@ -1,5 +1,11 @@
 #ifndef EMU_H_
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
 /* CHIP 8 description */
 /* ---
  * - MEMORY
@@ -36,13 +42,46 @@
  * ---
  */
 
-#include <stdint.h>
-#include <stdio.h>
-
 /* prototype */
+int load_rom(char *path);
 int mainloop();
 int fetch_opcode();
 int decode_opcode();
-int execute_opcode();
+int print_gfx();
+int opcode_0NNN();
+int opcode_00E0();
+int opcode_00EE();
+int opcode_1NNN();
+int opcode_2NNN();
+int opcode_3XNN();
+int opcode_4XNN();
+int opcode_5XY0();
+int opcode_6XNN();
+int opcode_7XNN();
+int opcode_8XY0();
+int opcode_8XY1();
+int opcode_8XY2();
+int opcode_8XY3();
+int opcode_8XY4();
+int opcode_8XY5();
+int opcode_8XY6();
+int opcode_8XY7();
+int opcode_8XYE();
+int opcode_9XY0();
+int opcode_ANNN();
+int opcode_BNNN();
+int opcode_CXNN();
+int opcode_DXYN();
+int opcode_EX9E();
+int opcode_EXA1();
+int opcode_FX07();
+int opcode_FX0A();
+int opcode_FX15();
+int opcode_FX18();
+int opcode_FX1E();
+int opcode_FX29();
+int opcode_FX33();
+int opcode_FX55();
+int opcode_FX65();
 
 #endif

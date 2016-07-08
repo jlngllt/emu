@@ -1,7 +1,8 @@
 SRC := emu.c
 OBJ := $(SRC:.c=.o)
 BIN := emu
-CFLAGS := -std=c89 -g -Wall -Wextra -pedantic
+SYMBOLS :=
+CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
 LDFLAGS :=
 
 $(BIN) : $(OBJ)
