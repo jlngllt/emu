@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ncurses.h>
 
 /* CHIP 8 description */
 /* ---
@@ -48,6 +49,7 @@ int mainloop();
 int fetch_opcode();
 int decode_opcode();
 int print_gfx();
+int print_debug();
 int opcode_0NNN();
 int opcode_00E0();
 int opcode_00EE();

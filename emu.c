@@ -15,7 +15,7 @@ uint8_t Gfx[WIDTH*HEIGHT]; /* graphic */
 uint8_t Dt; /* delay timer */
 uint8_t St; /* sound timer */
 
-uint8_t I;
+uint16_t I;
 uint16_t Pc;
 
 uint16_t Stack[16];
@@ -56,22 +56,40 @@ int load_rom(char *path)
 
 int print_gfx()
 {
-   uint32_t i = 0;
+   int i = 0;
 
    for (i = 0; i < WIDTH * HEIGHT; i++)
    {
-      if ((i % WIDTH) == 0)
-         printf("\n");
-
-      if (Gfx[i] == 0)
-         printf(" ");
-      else
-         printf("#");
+      if (Gfx[i] == 1)
+         mvprintw(i / WIDTH, i % WIDTH, "*"); 
    }
+   refresh();
 
-   for (i = 0; i < HEIGHT; i++)
-      printf("\033[A");
-   printf("\r");
+   return 0;
+}
+
+int print_debug()
+{
+   mvprintw(34, 0, "Opcode: 0x%04x", Opcode);
+   mvprintw(35, 0, "I:      0x%04x", I);
+   mvprintw(35, 0, "V[0]:   0x%02x", V[0]);
+   mvprintw(36, 0, "V[1]:   0x%02x", V[1]);
+   mvprintw(37, 0, "V[2]:   0x%02x", V[2]);
+   mvprintw(38, 0, "V[3]:   0x%02x", V[3]);
+   mvprintw(39, 0, "V[4]:   0x%02x", V[4]);
+   mvprintw(40, 0, "V[5]:   0x%02x", V[5]);
+   mvprintw(41, 0, "V[6]:   0x%02x", V[6]);
+   mvprintw(42, 0, "V[7]:   0x%02x", V[7]);
+   mvprintw(43, 0, "V[8]:   0x%02x", V[8]);
+   mvprintw(44, 0, "V[9]:   0x%02x", V[9]);
+   mvprintw(45, 0, "V[10]:  0x%02x", V[10]);
+   mvprintw(46, 0, "V[11]:  0x%02x", V[11]);
+   mvprintw(47, 0, "V[12]:  0x%02x", V[12]);
+   mvprintw(48, 0, "V[13]:  0x%02x", V[13]);
+   mvprintw(49, 0, "V[14]:  0x%02x", V[14]);
+   mvprintw(50, 0, "V[15]:  0x%02x", V[15]);
+
+   refresh();
 
    return 0;
 }
@@ -88,13 +106,20 @@ int main()
    I = 0;
    Sp = 0;
 
+   /* init ncurses */
+   initscr();
+   noecho();
+   curs_set(FALSE);
+
    /* charge la font */
    memcpy(&Memory[FONT_ADDR], Chip8_fontset, CHAR_ENCODED * NUMBER_OF_CHAR * sizeof(uint8_t));
+   /* charge la rom */
    load_rom("./rom/PONG");
 
    for (;;)
       mainloop();
 
+   endwin();
    return 0;
 }
 
@@ -102,8 +127,10 @@ int mainloop()
 {
    fetch_opcode();
    decode_opcode();
-#ifdef PRINT
    print_gfx();
+
+#ifdef DEBUG
+   print_debug();
 #endif
 
 #ifdef SLEEP 
@@ -274,18 +301,11 @@ int decode_opcode()
    return 0;
 }
 
-#ifdef DEBUG
-#define PRINT(fmt, var...) printf(fmt, var);
-#else
-#define PRINT(fmt, var...)
-#endif
-
 /*
  * Calls RCA 1802 program at address NNN. Not necessary for most ROMs.
  */
 int opcode_0NNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    printf("usesless no ? :'(\n");
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -295,7 +315,6 @@ int opcode_0NNN()
  */
 int opcode_00E0()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    memset(Gfx, 0, sizeof(uint8_t) * WIDTH * HEIGHT);
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -305,7 +324,6 @@ int opcode_00E0()
  */
 int opcode_00EE()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (Sp > 0)
    {
       Pc = Stack[Sp - 1];
@@ -318,7 +336,6 @@ int opcode_00EE()
  */
 int opcode_1NNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Pc = Opcode & 0x0FFF;
    return 0;
 }
@@ -327,7 +344,6 @@ int opcode_1NNN()
  */
 int opcode_2NNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Stack[Sp] = Pc;
    Sp = (uint16_t)(Sp + 1);
    Pc = Opcode & 0x0FFF;
@@ -338,7 +354,6 @@ int opcode_2NNN()
  */
 int opcode_3XNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] == (Opcode & 0x00FF))
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -349,7 +364,6 @@ int opcode_3XNN()
  */
 int opcode_4XNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] == (Opcode & 0x00FF))
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -360,7 +374,6 @@ int opcode_4XNN()
  */
 int opcode_5XY0()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] == V[(Opcode & 0x00F0) >> 4])
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -371,7 +384,6 @@ int opcode_5XY0()
  */
 int opcode_6XNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(Opcode & 0x00FF);
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -381,7 +393,6 @@ int opcode_6XNN()
  */
 int opcode_7XNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(V[(Opcode & 0x0F00) >> 8] + (Opcode & 0x00FF));
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -391,7 +402,6 @@ int opcode_7XNN()
  */
 int opcode_8XY0()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = V[(Opcode & 0x00F0) >> 4];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -401,7 +411,6 @@ int opcode_8XY0()
  */
 int opcode_8XY1()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] |= V[(Opcode & 0x00F0) >> 4];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -411,7 +420,6 @@ int opcode_8XY1()
  */
 int opcode_8XY2()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] &= V[(Opcode & 0x00F0) >> 4];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -421,7 +429,6 @@ int opcode_8XY2()
  */
 int opcode_8XY3()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] ^= V[(Opcode & 0x00F0) >> 4];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -432,7 +439,6 @@ int opcode_8XY3()
  */
 int opcode_8XY4()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(V[(Opcode & 0x0F00) >> 8] + V[(Opcode & 0x00F0) >> 4]);
    if (V[(Opcode & 0x0F00) >> 8] + V[(Opcode & 0x00F0) >> 4] > 0xFF)
       V[0xF] = 1;
@@ -448,7 +454,6 @@ int opcode_8XY4()
  */
 int opcode_8XY5()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(V[(Opcode & 0x0F00) >> 8] - V[(Opcode & 0x00F0) >> 4]);
    if (V[(Opcode & 0x0F00) >> 8] - V[(Opcode & 0x00F0) >> 4] < 0)
       V[0xF] = 1;
@@ -464,7 +469,6 @@ int opcode_8XY5()
 int opcode_8XY6()
 {
    uint8_t tmp;
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    tmp = V[(Opcode & 0x0F00) >> 8];
    V[(Opcode & 0x0F00) >> 8] = (uint16_t)(tmp >> 1);
    Pc = (uint16_t)(Pc + 2);
@@ -477,7 +481,6 @@ int opcode_8XY6()
  */
 int opcode_8XY7()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(V[(Opcode & 0x00F0) >> 4] - V[(Opcode & 0x0F00) >> 8]);
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -489,7 +492,6 @@ int opcode_8XY7()
 int opcode_8XYE()
 {
    uint8_t tmp;
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    tmp = V[(Opcode & 0x0F00) >> 8];
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(tmp << 1);
    return 0;
@@ -499,7 +501,6 @@ int opcode_8XYE()
  */
 int opcode_9XY0()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] == V[(Opcode & 0x00F0) >> 4])
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -510,8 +511,7 @@ int opcode_9XY0()
  */
 int opcode_ANNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
-   I = (uint8_t)(Opcode & 0x0FFF);
+   I = (uint16_t)(Opcode & 0x0FFF);
    Pc = (uint16_t)(Pc + 2);
    return 0;
 }
@@ -520,7 +520,6 @@ int opcode_ANNN()
  */
 int opcode_BNNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Pc = (uint16_t)((Opcode & 0x0FFF) + V[0]);
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -530,7 +529,6 @@ int opcode_BNNN()
  */
 int opcode_CXNN()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    srand((unsigned int)(rand()));
    V[(Opcode & 0x0F00) >> 8] = (uint8_t)(rand() % 0xFF) & V[(Opcode & 0x00FF)];
    Pc = (uint16_t)(Pc + 2);
@@ -546,26 +544,23 @@ int opcode_CXNN()
  */
 int opcode_DXYN()
 {
-   uint8_t i, j, x, y, nb_of_row, sprite, mask = 0;
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
+   uint8_t i_row, j_col, x, y, nb_of_row = 0;
+   uint8_t pix = 0;
 
    x = V[(Opcode & 0x0F00) >> 8];
    y = V[(Opcode & 0x00F0) >> 4];
-   nb_of_row = V[(Opcode & 0x000F)];
-   sprite = Memory[I];
+   nb_of_row = (Opcode & 0x000F);
 
    V[0xF] = 0;
-   for (i = 1; i < nb_of_row; i++)
+
+   for (i_row = 0; i_row < nb_of_row; i_row++)
    {
-      for (mask = 1, j = 0; j < 8; j++, mask = (uint8_t)(mask * 2))
+      for (j_col = 0; j_col < 8; j_col++)
       {
-         /* Vérifie si on écrase un Pixel */
-         if (Gfx[((y + j) * HEIGHT) + x + j] == '#')
-         {
+         pix = (Memory[I + i_row] >> (7 - j_col)) & 0x01;
+         Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix;
+         if (Gfx[(WIDTH * (y + i_row)) + (x + j_col)] != pix)
             V[0xF] = 1;
-         }
-         /*         Y           ;  X    */
-         Gfx[((y + i) * HEIGHT) + (x + j)] = (uint8_t)((Memory[I] & mask) >> j);
       }
    }
    Pc = (uint16_t)(Pc + 2);
@@ -577,7 +572,6 @@ int opcode_DXYN()
  */
 int opcode_EX9E()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] == Key)
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -589,7 +583,6 @@ int opcode_EX9E()
  */
 int opcode_EXA1()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    if (V[(Opcode & 0x0F00) >> 8] != Key)
       Pc = (uint16_t)(Pc + 4);
    Pc = (uint16_t)(Pc + 2);
@@ -600,7 +593,6 @@ int opcode_EXA1()
  */
 int opcode_FX07()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    V[(Opcode & 0x0F00) >> 8] = Dt;
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -610,7 +602,6 @@ int opcode_FX07()
  */
 int opcode_FX0A()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Key = V[(Opcode & 0x0F00) >> 8];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -620,7 +611,6 @@ int opcode_FX0A()
  */
 int opcode_FX15()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Dt = V[(Opcode & 0x0F00) >> 8];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -630,7 +620,6 @@ int opcode_FX15()
  */
 int opcode_FX18()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    St = V[(Opcode & 0x0F00) >> 8];
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -640,8 +629,7 @@ int opcode_FX18()
  */
 int opcode_FX1E()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
-   I = (uint8_t)(I + V[(Opcode & 0x0F00) >> 8]);
+   I = (uint16_t)(I + V[(Opcode & 0x0F00) >> 8]);
    Pc = (uint16_t)(Pc + 2);
    return 0;
 }
@@ -651,7 +639,6 @@ int opcode_FX1E()
  */
 int opcode_FX29()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    I = FONT_ADDR;
    Pc = (uint16_t)(Pc + 2);
    return 0;
@@ -665,7 +652,6 @@ int opcode_FX29()
  */
 int opcode_FX33()
 {
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    Memory[I] = V[(Opcode & 0x0F00) >> 8] / 100;
    Memory[I + 1] = (V[(Opcode & 0x0F00) >> 8] / 10) % 10;
    Memory[I + 2] = (V[(Opcode & 0x0F00) >> 8] / 100) % 10;
@@ -678,7 +664,6 @@ int opcode_FX33()
 int opcode_FX55()
 {
    uint8_t i = 0;
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
    for (i = 0; i <= ((Opcode & 0x0F00) >> 8); i++)
       Memory[I + i] = V[i];
    Pc = (uint16_t)(Pc + 2);
@@ -690,7 +675,6 @@ int opcode_FX55()
 int opcode_FX65()
 {
    uint8_t i = 0;
-   PRINT("%s - Opcode: %04x, Pc: %04d, I: %02x, Sp: %02d, Stack[%02d]: %02x \n", __FUNCTION__, Opcode, Pc, I, Sp, Sp, Stack[Sp]);
 
    for (i = 0; i <= ((Opcode & 0x0F00) >> 8); i++)
       Memory[I + i] = V[i];
