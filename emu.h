@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <ncurses.h>
 
 /* CHIP 8 description */
@@ -45,45 +46,47 @@
 
 /* prototype */
 int load_rom(char *path);
-int mainloop();
-int fetch_opcode();
-int decode_opcode();
+uint16_t mainloop(uint16_t pc);
+
+uint16_t fetch_opcode(uint16_t pc);
+uint16_t decode_opcode(uint16_t opcode, uint16_t pc);
 int print_gfx();
-int print_debug();
-int opcode_0NNN();
-int opcode_00E0();
-int opcode_00EE();
-int opcode_1NNN();
-int opcode_2NNN();
-int opcode_3XNN();
-int opcode_4XNN();
-int opcode_5XY0();
-int opcode_6XNN();
-int opcode_7XNN();
-int opcode_8XY0();
-int opcode_8XY1();
-int opcode_8XY2();
-int opcode_8XY3();
-int opcode_8XY4();
-int opcode_8XY5();
-int opcode_8XY6();
-int opcode_8XY7();
-int opcode_8XYE();
-int opcode_9XY0();
-int opcode_ANNN();
-int opcode_BNNN();
-int opcode_CXNN();
-int opcode_DXYN();
-int opcode_EX9E();
-int opcode_EXA1();
-int opcode_FX07();
-int opcode_FX0A();
-int opcode_FX15();
-int opcode_FX18();
-int opcode_FX1E();
-int opcode_FX29();
-int opcode_FX33();
-int opcode_FX55();
-int opcode_FX65();
+int print_debug(uint16_t opcode, uint16_t mem_pc);
+
+uint16_t opcode_0NNN(uint16_t pc);
+uint16_t opcode_00E0(uint16_t pc);
+uint16_t opcode_00EE(uint16_t pc);
+uint16_t opcode_1NNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_2NNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_3XNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_4XNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_5XY0(uint16_t opcode, uint16_t pc);
+uint16_t opcode_6XNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_7XNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY0(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY1(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY2(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY3(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY4(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY5(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY6(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XY7(uint16_t opcode, uint16_t pc);
+uint16_t opcode_8XYE(uint16_t opcode, uint16_t pc);
+uint16_t opcode_9XY0(uint16_t opcode, uint16_t pc);
+uint16_t opcode_ANNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_BNNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_CXNN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_DXYN(uint16_t opcode, uint16_t pc);
+uint16_t opcode_EX9E(uint16_t opcode, uint16_t pc);
+uint16_t opcode_EXA1(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX07(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX0A(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX15(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX18(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX1E(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX29(uint16_t pc);
+uint16_t opcode_FX33(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX55(uint16_t opcode, uint16_t pc);
+uint16_t opcode_FX65(uint16_t opcode, uint16_t pc);
 
 #endif
