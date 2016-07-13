@@ -57,11 +57,28 @@ int load_rom(char *path)
 int print_gfx()
 {
    int i = 0;
+#ifdef DEBUG
+   int j = 0;
+   for (j = 0, i = 0; i < WIDTH; i++)
+   {
+      if ((i % 10) == 0)
+         mvprintw(0, i + 2, "%d", j++);
+      mvprintw(1, i + 2, "%d", i % 10);
+   }
+
+   for (j = 0, i = 0; i < HEIGHT; i++)
+   {
+      if ((i % 10) == 0)
+         mvprintw(i + 2, 0, "%d", j++);
+      mvprintw(i + 2, 1, "%d", i % 10);
+   }
+   mvprintw(0, 0, " ");
+#endif
 
    for (i = 0; i < WIDTH * HEIGHT; i++)
    {
       if (Gfx[i] == 1)
-         mvprintw(i / WIDTH, i % WIDTH, "*");
+         mvprintw((i / WIDTH) + 2, i % WIDTH + 2, "*");
    }
    refresh();
 
@@ -80,30 +97,30 @@ int print_debug(uint16_t opcode, uint16_t mem_pc)
 #define X_0_RAM WIDTH + OFFSET_W
 #define Y_0_RAM 0 + OFFSET_H
 
-   mvprintw(HEIGHT + 1,  0, "Pc       : 0x%04x", mem_pc);
-   mvprintw(HEIGHT + 2,  0, "opcode   : 0x%04x", opcode);
-   mvprintw(HEIGHT + 3,  0, "I        : 0x%04x", I);
-   mvprintw(HEIGHT + 4,  0, "Dt       : 0x%02x", Dt);
-   mvprintw(HEIGHT + 5,  0, "V[0]     : 0x%02x", V[0]);
-   mvprintw(HEIGHT + 6,  0, "V[1]     : 0x%02x", V[1]);
-   mvprintw(HEIGHT + 7,  0, "V[2]     : 0x%02x", V[2]);
-   mvprintw(HEIGHT + 8,  0, "V[3]     : 0x%02x", V[3]);
-   mvprintw(HEIGHT + 9,  0, "V[4]     : 0x%02x", V[4]);
-   mvprintw(HEIGHT + 10, 0, "V[5]     : 0x%02x", V[5]);
-   mvprintw(HEIGHT + 11, 0, "V[6]     : 0x%02x", V[6]);
-   mvprintw(HEIGHT + 12, 0, "V[7]     : 0x%02x", V[7]);
-   mvprintw(HEIGHT + 13, 0, "V[8]     : 0x%02x", V[8]);
-   mvprintw(HEIGHT + 14, 0, "V[9]     : 0x%02x", V[9]);
-   mvprintw(HEIGHT + 15, 0, "V[10]    : 0x%02x", V[10]);
-   mvprintw(HEIGHT + 16, 0, "V[11]    : 0x%02x", V[11]);
-   mvprintw(HEIGHT + 17, 0, "V[12]    : 0x%02x", V[12]);
-   mvprintw(HEIGHT + 18, 0, "V[13]    : 0x%02x", V[13]);
-   mvprintw(HEIGHT + 19, 0, "V[14]    : 0x%02x", V[14]);
-   mvprintw(HEIGHT + 20, 0, "V[15]    : 0x%02x", V[15]);
-   mvprintw(HEIGHT + 21, 0, "Sp       : %02d", Sp);
-   mvprintw(HEIGHT + 22, 0, "Stack[0] : 0x%02x", Stack[0]);
-   mvprintw(HEIGHT + 23, 0, "Stack[1] : 0x%02x", Stack[1]);
-   mvprintw(HEIGHT + 24, 0, "Stack[2] : 0x%02x", Stack[2]);
+   mvprintw(HEIGHT + 2,  0, "Pc       : 0x%04x", mem_pc);
+   mvprintw(HEIGHT + 3,  0, "opcode   : 0x%04x", opcode);
+   mvprintw(HEIGHT + 4,  0, "I        : 0x%04x", I);
+   mvprintw(HEIGHT + 5,  0, "Dt       : 0x%02x", Dt);
+   mvprintw(HEIGHT + 6,  0, "V[0]     : 0x%02x", V[0]);
+   mvprintw(HEIGHT + 7,  0, "V[1]     : 0x%02x", V[1]);
+   mvprintw(HEIGHT + 8,  0, "V[2]     : 0x%02x", V[2]);
+   mvprintw(HEIGHT + 9,  0, "V[3]     : 0x%02x", V[3]);
+   mvprintw(HEIGHT + 10, 0, "V[4]     : 0x%02x", V[4]);
+   mvprintw(HEIGHT + 11, 0, "V[5]     : 0x%02x", V[5]);
+   mvprintw(HEIGHT + 12, 0, "V[6]     : 0x%02x", V[6]);
+   mvprintw(HEIGHT + 13, 0, "V[7]     : 0x%02x", V[7]);
+   mvprintw(HEIGHT + 14, 0, "V[8]     : 0x%02x", V[8]);
+   mvprintw(HEIGHT + 15, 0, "V[9]     : 0x%02x", V[9]);
+   mvprintw(HEIGHT + 16, 0, "V[10]    : 0x%02x", V[10]);
+   mvprintw(HEIGHT + 17, 0, "V[11]    : 0x%02x", V[11]);
+   mvprintw(HEIGHT + 18, 0, "V[12]    : 0x%02x", V[12]);
+   mvprintw(HEIGHT + 19, 0, "V[13]    : 0x%02x", V[13]);
+   mvprintw(HEIGHT + 20, 0, "V[14]    : 0x%02x", V[14]);
+   mvprintw(HEIGHT + 21, 0, "V[15]    : 0x%02x", V[15]);
+   mvprintw(HEIGHT + 22, 0, "Sp       : %02d", Sp);
+   mvprintw(HEIGHT + 23, 0, "Stack[0] : 0x%02x", Stack[0]);
+   mvprintw(HEIGHT + 24, 0, "Stack[1] : 0x%02x", Stack[1]);
+   mvprintw(HEIGHT + 25, 0, "Stack[2] : 0x%02x", Stack[2]);
 
    /* affichage de la mémoire */
    for (y = 0, x = 0, pc = 0, j = 0; pc < (Rom_size + 0x200); pc += 2, j++)
@@ -146,8 +163,13 @@ int main(int argc, char *argv[])
 int main()
 #endif
 {
+#if DEBUG
+   int n_it = 0;
+   int c = 0;
+#endif
    uint16_t pc = 0x200;
-   srand(0);
+   srand((unsigned int)(time(NULL)));
+
    /* Pc = 0x200; */
    I = 0;
    Sp = 0;
@@ -155,17 +177,42 @@ int main()
    /* init ncurses */
    initscr();
    noecho();
-   curs_set(FALSE);
+   cbreak();
+   curs_set(0);
+   keypad(stdscr, TRUE);
 
    /* charge la font */
    memcpy(&Memory[FONT_ADDR],
           Chip8_fontset,
           CHAR_ENCODED * NUMBER_OF_CHAR * sizeof(uint8_t));
    /* charge la rom */
-   load_rom("./rom/MAZE");
+   load_rom("./rom/INVADERS");
 
    for (;;)
+   {
+#if DEBUG
+      c = wgetch(stdscr);
+      switch (c)
+      {
+         case KEY_RIGHT:
+            {
+               pc = mainloop(pc);
+               n_it++;
+               mvprintw(HEIGHT + 28, 0,"it: %04d", n_it); refresh();
+               refresh();
+            }
+            break;
+
+         default:
+            {
+               refresh();
+            }
+            break;
+      }
+#else
       pc = mainloop(pc);
+#endif
+   }
 
    endwin();
    return 0;
@@ -190,6 +237,7 @@ uint16_t mainloop(uint16_t pc)
    print_gfx();
    if (Dt > 0)
       Dt--;
+
 
 #ifdef SLEEP
    usleep(250000);
@@ -586,8 +634,14 @@ uint16_t opcode_BNNN(uint16_t opcode, uint16_t pc)
  */
 uint16_t opcode_CXNN(uint16_t opcode, uint16_t pc)
 {
-   srand((unsigned int)(rand()));
-   V[(opcode & 0x0F00) >> 8] = (uint8_t)(rand() % 0xFF) & V[(opcode & 0x00FF)];
+   int random = rand();
+   srand((unsigned int)(random));
+
+#if DEBUG
+   mvprintw(HEIGHT + 27, 0 , "%02x & %02x = %02x", (random % 0xFF), (opcode & 0x00FF),(uint8_t)((random % 0xFF) & (opcode & 0x00FF)));
+#endif
+   V[(opcode & 0x0F00) >> 8] = (uint8_t)((random % 0xFF) & (opcode & 0x00FF));
+
    pc = (uint16_t)(pc + 2);
    return pc;
 }
@@ -605,8 +659,15 @@ uint16_t opcode_DXYN(uint16_t opcode, uint16_t pc)
    uint8_t pix = 0;
 
    x = V[(opcode & 0x0F00) >> 8];
+   x %= WIDTH;
    y = V[(opcode & 0x00F0) >> 4];
+   y %= HEIGHT;
    nb_of_row = (opcode & 0x000F);
+
+#if DEBUG
+   mvprintw(HEIGHT + 2 ,WIDTH + 2, "x = %d, y = %d, row = %d, emplacement tableau %d", x, y, nb_of_row, (WIDTH * y) + x);
+   refresh();
+#endif
 
    V[0xF] = 0;
 
@@ -615,11 +676,30 @@ uint16_t opcode_DXYN(uint16_t opcode, uint16_t pc)
       for (j_col = 0; j_col < 8; j_col++)
       {
          pix = (Memory[I + i_row] >> (7 - j_col)) & 0x01;
-         Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix;
-         if (Gfx[(WIDTH * (y + i_row)) + (x + j_col)] != pix)
-            V[0xF] = 1;
+
+         if (Gfx[(WIDTH * (y + i_row)) + (x + j_col)] == 1)
+         {
+            if (pix == 1)
+            {
+               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 0;
+               V[0xf] = 1;
+            }
+            else
+               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 1;
+         }
+         else
+         {
+            if (pix == 1)
+               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 1;
+            else
+               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 0;
+         }
+
+         /* Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix; */
+
 #if DEBUG
          mvprintw(HEIGHT + 5 + i_row, WIDTH + 5 + j_col, "%1d", Gfx[(WIDTH * (y + i_row)) + (x + j_col)]);
+         refresh();
 #endif
       }
    }
