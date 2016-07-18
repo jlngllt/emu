@@ -6,6 +6,7 @@ uint8_t Memory[MEMORY_SIZE];
 #define DATA_REGISTER_NUMBER 16
 uint8_t V[DATA_REGISTER_NUMBER]; /* data register */
 
+#define TAMPON 4
 #define WIDTH 0x40 /* 64 */
 #define HEIGHT 0x20 /* 32 */
 uint8_t Gfx[WIDTH*HEIGHT]; /* graphic */
@@ -79,8 +80,9 @@ int print_gfx()
    {
       if (Gfx[i] == 1)
          mvprintw((i / WIDTH) + 2, i % WIDTH + 2, "*");
+      else
+         mvprintw((i / WIDTH) + 2, i % WIDTH + 2, " ");
    }
-   refresh();
 
    return 0;
 }
@@ -165,8 +167,8 @@ int main()
 {
 #if DEBUG
    int n_it = 0;
-   int c = 0;
 #endif
+   int c = 0;
    uint16_t pc = 0x200;
    srand((unsigned int)(time(NULL)));
 
@@ -174,23 +176,28 @@ int main()
    I = 0;
    Sp = 0;
 
+
    /* init ncurses */
    initscr();
    noecho();
    cbreak();
    curs_set(0);
    keypad(stdscr, TRUE);
+#ifndef DEBUG
+   nodelay(stdscr, TRUE);
+#endif
 
    /* charge la font */
    memcpy(&Memory[FONT_ADDR],
           Chip8_fontset,
           CHAR_ENCODED * NUMBER_OF_CHAR * sizeof(uint8_t));
    /* charge la rom */
-   load_rom("./rom/INVADERS");
+   load_rom("./rom/PONG");
 
    for (;;)
    {
 #if DEBUG
+
       c = wgetch(stdscr);
       switch (c)
       {
@@ -198,19 +205,70 @@ int main()
             {
                pc = mainloop(pc);
                n_it++;
-               mvprintw(HEIGHT + 28, 0,"it: %04d", n_it); refresh();
+               mvprintw(HEIGHT + 28, 0,"it: %04d", n_it);
                refresh();
             }
             break;
 
-         default:
+         case ' ':
+         {
+            c = getch();
+            switch(c)
             {
-               refresh();
+               case 'è': Key = 0x1; break;
+               case '_': Key = 0x2; break;
+               case 'ç': Key = 0x3; break;
+               case 'à': Key = 0xc; break;
+               case 'u': Key = 0x4; break;
+               case 'i': Key = 0x5; break;
+               case 'o': Key = 0x6; break;
+               case 'p': Key = 0xd; break;
+               case 'j': Key = 0x7; break;
+               case 'k': Key = 0x8; break;
+               case 'l': Key = 0x9; break;
+               case 'm': Key = 0xe; break;
+               case ',': Key = 0xa; break;
+               case ';': Key = 0x0; break;
+               case ':': Key = 0xb; break;
+               case '!': Key = 0xf; break;
+               default : Key = Key; break;
             }
-            break;
+            mvprintw(HEIGHT + 28, 20,"Key : 0x%x", Key);
+            refresh();
+         }
+         break;
+
+         default:
+         {
+            refresh();
+         }
+         break;
       }
+
 #else
+      c = wgetch(stdscr);
+      switch(c)
+      {
+         case '7': Key = 0x1; break;
+         case '8': Key = 0x2; break;
+         case '9': Key = 0x3; break;
+         case '0': Key = 0xc; break;
+         case 'u': Key = 0x4; break;
+         case 'i': Key = 0x5; break;
+         case 'o': Key = 0x6; break;
+         case 'p': Key = 0xd; break;
+         case 'j': Key = 0x7; break;
+         case 'k': Key = 0x8; break;
+         case 'l': Key = 0x9; break;
+         case 'm': Key = 0xe; break;
+         case ',': Key = 0xa; break;
+         case ';': Key = 0x0; break;
+         case ':': Key = 0xb; break;
+         case '!': Key = 0xf; break;
+         default : Key = Key; break;
+      }
       pc = mainloop(pc);
+
 #endif
    }
 
@@ -220,6 +278,8 @@ int main()
 
 uint16_t mainloop(uint16_t pc)
 {
+   double diff, freq;
+   struct timespec start, stop;
    uint16_t opcode;
 #ifdef DEBUG
    static uint16_t mem_pc;
@@ -228,6 +288,12 @@ uint16_t mainloop(uint16_t pc)
 #ifdef DEBUG
    mem_pc = pc;
 #endif
+
+   if (clock_gettime(CLOCK_REALTIME, &start) == -1)
+   {
+      perror("clock gettime");
+      exit (EXIT_FAILURE);
+   }
 
    opcode = fetch_opcode(pc);
    pc = decode_opcode(opcode, pc);
@@ -238,10 +304,22 @@ uint16_t mainloop(uint16_t pc)
    if (Dt > 0)
       Dt--;
 
-
 #ifdef SLEEP
-   usleep(250000);
+   /* usleep(16080); */
+   usleep(4000);
 #endif
+
+   if (clock_gettime(CLOCK_REALTIME, &stop) == -1)
+   {
+      perror("clock gettime");
+      exit (EXIT_FAILURE);
+   }
+
+   diff = (stop.tv_sec - start.tv_sec) + (double)(stop.tv_nsec - start.tv_nsec) / (double)1000000000L;
+   freq = 1.0 / diff;
+
+   mvprintw(HEIGHT + 3, 0, "diff: %f sec, freq = %f", diff, freq);
+
 
     return pc;
 }
@@ -657,6 +735,10 @@ uint16_t opcode_DXYN(uint16_t opcode, uint16_t pc)
 {
    uint8_t i_row, j_col, x, y, nb_of_row = 0;
    uint8_t pix = 0;
+   int k = 0;
+#if DEBUG
+   static int nb_of_row_last = 0;
+#endif
 
    x = V[(opcode & 0x0F00) >> 8];
    x %= WIDTH;
@@ -665,46 +747,72 @@ uint16_t opcode_DXYN(uint16_t opcode, uint16_t pc)
    nb_of_row = (opcode & 0x000F);
 
 #if DEBUG
+   mvprintw(HEIGHT + 4 + nb_of_row_last, WIDTH + 3 + 0, "  ");
+   mvprintw(HEIGHT + 4 + nb_of_row_last, WIDTH + 5 + 8, "  ");
    mvprintw(HEIGHT + 2 ,WIDTH + 2, "x = %d, y = %d, row = %d, emplacement tableau %d", x, y, nb_of_row, (WIDTH * y) + x);
    refresh();
 #endif
 
    V[0xF] = 0;
+/* Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 0; */
 
    for (i_row = 0; i_row < nb_of_row; i_row++)
    {
+      k++;
       for (j_col = 0; j_col < 8; j_col++)
       {
+         k++;
          pix = (Memory[I + i_row] >> (7 - j_col)) & 0x01;
+#if DEBUG
+         mvprintw(0, WIDTH + 70, "JULIEN");
+         mvprintw(k, WIDTH + 70,"|x = %3d, y = %3d|", ((y + i_row) % HEIGHT), ((x + j_col) % WIDTH));
+         refresh();
+#endif
 
-         if (Gfx[(WIDTH * (y + i_row)) + (x + j_col)] == 1)
+         if (Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] == 1)
          {
             if (pix == 1)
             {
-               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 0;
-               V[0xf] = 1;
+               Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] = 0;
+               V[0xF] = 1;
             }
             else
-               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 1;
+               Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] = 1;
          }
          else
          {
             if (pix == 1)
-               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 1;
+               Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] = 1;
             else
-               Gfx[(WIDTH * (y + i_row)) + (x + j_col)] = 0;
+               Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] = 0;
          }
-
          /* Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix; */
 
-#if DEBUG
-         mvprintw(HEIGHT + 5 + i_row, WIDTH + 5 + j_col, "%1d", Gfx[(WIDTH * (y + i_row)) + (x + j_col)]);
-         refresh();
-#endif
       }
    }
-   pc = (uint16_t)(pc + 2);
+#if DEBUG
+   mvprintw(HEIGHT + 4, WIDTH + 5, "_");
+   mvprintw(HEIGHT + 5, WIDTH + 4, "|");
+      for (i_row = 0; i_row < 0xF; i_row++)
+      {
+         for (j_col = 0; j_col < 8; j_col++)
+         {
+            if (((Memory[I + i_row] >> (7 - j_col)) & 0x01) != 0)
+               mvprintw(HEIGHT + 5 + i_row, WIDTH + 5 + j_col, "x");
+            else
+               mvprintw(HEIGHT + 5 + i_row, WIDTH + 5 + j_col, ".");
+         }
+      }
+      nb_of_row_last = nb_of_row;
+      mvprintw(HEIGHT + 4 + nb_of_row, WIDTH + 3 + 0, "->");
+      mvprintw(HEIGHT + 4 + nb_of_row, WIDTH + 5 + 8, "<-");
 
+      mvprintw(HEIGHT + 4 + i_row, WIDTH + 5 + j_col, "|");
+      mvprintw(HEIGHT + 5 + i_row, WIDTH + 4 + j_col, "'");
+
+      refresh();
+#endif
+   pc = (uint16_t)(pc + 2);
    return pc;
 }
 /*

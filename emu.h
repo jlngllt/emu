@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <linux/time.h>
 #include <ncurses.h>
 
 /* CHIP 8 description */
