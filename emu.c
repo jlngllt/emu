@@ -183,7 +183,7 @@ int32_t emu_print_gfx()
 
    for (i = 0; i < WIDTH * HEIGHT; i++) {
       mvprintw((i / WIDTH) + 2, i % WIDTH + 2, " ");
-      if (Gfx[i] == 1) {
+      if (Gfx[i] == 1)
          mvprintw((i / WIDTH) + 2, i % WIDTH + 2, "*");
    }
    return 0;

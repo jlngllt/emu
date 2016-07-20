@@ -11,7 +11,7 @@ $(BIN): $(OBJ)
 debug: ; make SYMBOLS="-DDEBUG"
 
 %.o : %.c %.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
 clean :
 	$(RM) $(BIN)
