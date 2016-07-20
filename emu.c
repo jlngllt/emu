@@ -118,6 +118,7 @@ int emu_load_rom(char *path)
 struct timespec emu_gettime()
 {
    struct timespec t;
+
    if (clock_gettime(CLOCK_REALTIME, &t) == -1) {
       perror("clock gettime");
       exit(EXIT_FAILURE);
@@ -163,7 +164,6 @@ void emu_d_compute_freq(struct timespec t)
 int32_t emu_print_gfx()
 {
    int i = 0;
-
 #ifdef DEBUG
    int j = 0;
 
@@ -186,7 +186,6 @@ int32_t emu_print_gfx()
       if (Gfx[i] == 1) {
          mvprintw((i / WIDTH) + 2, i % WIDTH + 2, "*");
    }
-
    return 0;
 }
 
@@ -391,6 +390,7 @@ uint16_t emu_opcode_8XY5(uint16_t opcode, uint16_t pc)
       V[0xF] = 1;
    else
       V[0xF] = 0;
+
    pc = (uint16_t)(pc + 2);
    return pc;
 }
@@ -406,7 +406,6 @@ uint16_t emu_opcode_8XY6(uint16_t opcode, uint16_t pc)
    tmp = V[GET_0100(opcode)];
    V[GET_0100(opcode)] = (uint16_t)(tmp >> 1);
    pc = (uint16_t)(pc + 2);
-
    return pc;
 }
 
@@ -431,7 +430,6 @@ uint16_t emu_opcode_8XYE(uint16_t opcode, uint16_t pc)
 
    tmp = V[GET_0100(opcode)];
    V[GET_0100(opcode)] = (uint8_t)(tmp << 1);
-
    return pc;
 }
 
@@ -482,7 +480,6 @@ uint16_t emu_opcode_CXNN(uint16_t opcode, uint16_t pc)
    V[GET_0100(opcode)] = (uint8_t)((random % 0xFF) & GET_0011(opcode));
 
    pc = (uint16_t)(pc + 2);
-
    return pc;
 }
 
@@ -554,7 +551,6 @@ uint16_t emu_opcode_DXYN(uint16_t opcode, uint16_t pc)
    refresh();
 #endif
    pc = (uint16_t)(pc + 2);
-
    return pc;
 }
 
@@ -639,7 +635,7 @@ uint16_t emu_opcode_FX1E(uint16_t opcode, uint16_t pc)
  */
 uint16_t emu_opcode_FX29(uint16_t pc)
 {
-   I  = FONT_ADDR;
+   I = FONT_ADDR;
    pc = (uint16_t)(pc + 2);
    return pc;
 }
@@ -670,7 +666,6 @@ uint16_t emu_opcode_FX55(uint16_t opcode, uint16_t pc)
    for (i = 0; i <= GET_0100(opcode); i++)
       Memory[I + i] = V[i];
    pc = (uint16_t)(pc + 2);
-
    return pc;
 }
 
@@ -684,7 +679,6 @@ uint16_t emu_opcode_FX65(uint16_t opcode, uint16_t pc)
    for (i = 0; i <= GET_0100(opcode); i++)
       Memory[I + i] = V[i];
    pc = (uint16_t)(pc + 2);
-
    return pc;
 }
 
@@ -777,7 +771,6 @@ uint16_t emu_fetch_opcode(uint16_t pc)
    /* Memory = ... 0xA2 0xF0 ...*/
    /* Memory     = 0xA2 */
    /* Memory + 1 = 0xF0 */
-
    /* opcode doit être = 0xA2F0 */
    return (uint16_t)(Memory[pc] << 8 | Memory[pc + 1]);
 }
@@ -902,7 +895,6 @@ uint16_t emu_decode_opcode(uint16_t opcode,
          printf("impossible d'arriver ici normalement\n");
       break;
    }
-
    return pc;
 }
 
@@ -935,7 +927,6 @@ uint16_t emu_mainloop(uint16_t pc)
    emu_nanosleep(FREQ_SYNC, emu_difftimespec(t1, t2));
 
    emu_d_compute_freq(emu_difftimespec(t1, emu_gettime()));
-
    return pc;
 }
 
@@ -959,7 +950,6 @@ int32_t main(int32_t argc,
       fprintf(stderr, "rom not known\n");
       exit(EXIT_FAILURE);
    }
-
    /* charge la font */
    memcpy(&Memory[FONT_ADDR],
          Chip8_fontset,
@@ -1015,8 +1005,6 @@ int32_t main(int32_t argc,
       pc = emu_mainloop(pc);
 #endif
    }
-
    endwin();
-
    return 0;
 }
