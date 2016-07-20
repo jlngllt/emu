@@ -501,6 +501,7 @@ uint16_t emu_opcode_DXYN(uint16_t opcode, uint16_t pc)
          refresh();
 #endif
 
+#if 0
          if (Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] == 1)
          {
             if (pix == 1)
@@ -518,7 +519,10 @@ uint16_t emu_opcode_DXYN(uint16_t opcode, uint16_t pc)
             else
                Gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] = 0;
          }
-         /* Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix; */
+#endif
+         if (Gfx[(WIDTH * (y + i_row)) + (x + j_col)] != pix)
+            V[0xF] = 1;
+         Gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix;
 
       }
    }
