@@ -6,12 +6,16 @@ CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
 LDFLAGS := -lncurses -lrt
 
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SYMBOLS) $^ -o $@
 
-debug: ; make SYMBOLS="-DDEBUG"
+debug: $(OBJ)
+	@echo $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -DDEBUG $(SYMBOLS) $^ -o $(BIN)
 
-%.o : %.c %.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+run: ; ./$(BIN) rom/PONG
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean :
 	$(RM) $(BIN)
