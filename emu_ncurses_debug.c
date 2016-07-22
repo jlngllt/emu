@@ -3,76 +3,72 @@
 
 #include <ncurses.h>
 
-int32_t emu_print_debug(uint16_t opcode, uint16_t mem_pc)
-{
-   int pc, j, x, y;
-
 #define SIZE_ESPACE 1
 #define SIZE_OPCODE 4
-#define N_LINE      15
-#define OFFSET_W    5
-#define OFFSET_Y    5
-#define X_0_RAM     WIDTH + OFFSET_W
-#define Y_0_RAM     0 + OFFSET_H
 
-   mvprintw(HEIGHT + 2,  0, "Pc       : 0x%04x", mem_pc);
-   mvprintw(HEIGHT + 3,  0, "opcode   : 0x%04x", opcode);
-   mvprintw(HEIGHT + 4,  0, "I        : 0x%04x", I);
-   mvprintw(HEIGHT + 5,  0, "Dt       : 0x%02x", Dt);
-   mvprintw(HEIGHT + 6,  0, "V[0]     : 0x%02x", V[0]);
-   mvprintw(HEIGHT + 7,  0, "V[1]     : 0x%02x", V[1]);
-   mvprintw(HEIGHT + 8,  0, "V[2]     : 0x%02x", V[2]);
-   mvprintw(HEIGHT + 9,  0, "V[3]     : 0x%02x", V[3]);
-   mvprintw(HEIGHT + 10, 0, "V[4]     : 0x%02x", V[4]);
-   mvprintw(HEIGHT + 11, 0, "V[5]     : 0x%02x", V[5]);
-   mvprintw(HEIGHT + 12, 0, "V[6]     : 0x%02x", V[6]);
-   mvprintw(HEIGHT + 13, 0, "V[7]     : 0x%02x", V[7]);
-   mvprintw(HEIGHT + 14, 0, "V[8]     : 0x%02x", V[8]);
-   mvprintw(HEIGHT + 15, 0, "V[9]     : 0x%02x", V[9]);
-   mvprintw(HEIGHT + 16, 0, "V[10]    : 0x%02x", V[10]);
-   mvprintw(HEIGHT + 17, 0, "V[11]    : 0x%02x", V[11]);
-   mvprintw(HEIGHT + 18, 0, "V[12]    : 0x%02x", V[12]);
-   mvprintw(HEIGHT + 19, 0, "V[13]    : 0x%02x", V[13]);
-   mvprintw(HEIGHT + 20, 0, "V[14]    : 0x%02x", V[14]);
-   mvprintw(HEIGHT + 21, 0, "V[15]    : 0x%02x", V[15]);
-   mvprintw(HEIGHT + 22, 0,   "Sp       : %02d", Sp);
-   mvprintw(HEIGHT + 23, 0, "Stack[0] : 0x%02x", Stack[0]);
-   mvprintw(HEIGHT + 24, 0, "Stack[1] : 0x%02x", Stack[1]);
-   mvprintw(HEIGHT + 25, 0, "Stack[2] : 0x%02x", Stack[2]);
+#define PRINT_STYLE(y, x, text, var) \
+   do { \
+      if (d->emu.var != d->prev_emu.var) \
+      { \
+         attron(A_STANDOUT); \
+         mvprintw(y, x, text, d->emu.var); \
+      } else { \
+         mvprintw(y, x, text, d->emu.var); \
+      } \
+      attroff(A_STANDOUT); \
+   } while (0) \
 
-   /* affichage de la mémoire */
-   for (y = 0, x = 0, pc = 0, j = 0; pc < (Rom_size + 0x200); pc += 2, j++) {
-      attroff(A_UNDERLINE);
-      if (j == (mem_pc / 2))
-         attron(A_UNDERLINE);
-      mvprintw(y, X_0_RAM + x, "%02x%02x", Memory[pc], Memory[pc + 1]);
 
+void emu_debug_draw_mem(const uint8_t *mem, int32_t rom_size, uint16_t emu_pc, uint8_t n_line, uint8_t x0, uint8_t y0)
+{
+   int32_t pc, j, x, y, i_elem;
+   int32_t size_total = (rom_size + INIT_ADDR);
+   int32_t size_print_elem = SIZE_OPCODE + SIZE_ESPACE;
+   /* affichage de la mémoire */;
+   for (i_elem = 0, y = 0, x = 0, pc = 0, j = 0; pc < size_total; pc += 2, i_elem++) {
+      attroff(A_STANDOUT);
+      if (i_elem == (emu_pc / 2))
+         attron(A_STANDOUT);
+      mvprintw(y0 + y, x0 + x, "%02x%02x", mem[pc], mem[pc + 1]);
       /* nombre de ligne sur lequel on affiche la mémoire */
-      if (x > (Rom_size + 0x200) / N_LINE) {
+      if (x > (size_print_elem * (size_total / 2)) / n_line) {
          y++;
          x = 0;
-      } else {
-         x += SIZE_OPCODE + SIZE_ESPACE;
       }
+      else
+         x += SIZE_OPCODE + SIZE_ESPACE;
    }
 
    refresh();
-
-#undef SIZE_ESPACE
-#undef SIZE_OPCODE
-#undef N_LINE
-#undef OFFSET_W
-#undef OFFSET_Y
-#undef X_0_RAM
-#undef Y_0_RAM
-
-   return 0;
 }
 
-void emu_debug_draw(struct debug_state *d)
+void emu_debug_draw(struct debug_emu *d)
 {
-   mvprintw(50, 0, "fuck");
-   mvprintw(HEIGHT + 2, 2, "opcode    = 0x%04x", d->opcode);
-   mvprintw(HEIGHT + 3, 2, "pc        = 0x%04x", d->pc);
-   mvprintw(HEIGHT + 4, 2, "frequence = %g", d->frequence);
+   int i = 0;
+   emu_debug_draw_mem(d->emu.memory, d->emu.rom_size, d->emu.pc, 30, WIDTH + 1 , 0);
+   mvprintw(HEIGHT  + 1,  0, "frequence : %g", d->freq);
+   mvprintw(HEIGHT  + 2,  0, "Pc        : ");
+   PRINT_STYLE(HEIGHT + 2,  12, "0x%02x", pc);
+   mvprintw(HEIGHT  + 3,  0, "opcode    : ");
+   PRINT_STYLE(HEIGHT + 3,  12, "0x%02x", opcode);
+   mvprintw(HEIGHT  + 4,  0, "I         : ");
+   PRINT_STYLE(HEIGHT + 4,  12, "0x%02x", i);
+   mvprintw(HEIGHT  + 5,  0, "Dt        : ");
+   PRINT_STYLE(HEIGHT + 5,  12, "0x%02x", dt);
+   mvprintw(HEIGHT  + 7,  0, "V /");
+   for (i = 0; i < 16; i++)
+   {
+      mvprintw(HEIGHT  + 8, i * 9 + 1, " V[%02d] | ", i);
+      mvprintw(HEIGHT  + 9, i * 9 + 1, "       | ");
+      PRINT_STYLE(HEIGHT + 9, i * 9 + 1, "0x%04x",v[i]);
+   }
+   mvprintw(HEIGHT + 11, 0, "Stack /");
+   for (i = 0; i < 16; i++)
+   {
+      mvprintw(HEIGHT  + 12, i * 9 + 1, " s[%02d] | ", i);
+      mvprintw(HEIGHT  + 13, i * 9 + 1, "       | ");
+      PRINT_STYLE(HEIGHT + 13, i * 9 + 1, "0x%04x", stack.addr[i]);
+   }
+   mvprintw(HEIGHT  + 14,  0, "Sp       : ");
+   PRINT_STYLE(HEIGHT + 14,  12, "0x%02x", stack.p);
 }

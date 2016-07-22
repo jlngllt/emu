@@ -1,5 +1,5 @@
-#ifndef _EMU_H_
-#define _EMU_H_
+#ifndef _EMU_H
+#define _EMU_H
 
 #define _POSIX_C_SOURCE 199309L
 
@@ -20,31 +20,37 @@
 #define GET_0011(var) (var & 0x00FF)
 #define GET_0111(var) (var & 0x0FFF)
 
+#define INIT_ADDR 0x200
 #define MEMORY_SIZE 0x1000 /* 4096 */
-uint8_t Memory[MEMORY_SIZE];
-
-#define DATA_REGISTER_NUMBER 16
-uint8_t V[DATA_REGISTER_NUMBER]; /* data register */
-
 #define TAMPON 4
 #define WIDTH  0x40 /* 64 */
 #define HEIGHT 0x20 /* 32 */
-uint8_t Gfx[WIDTH * HEIGHT]; /* graphic */
-
-uint8_t Dt; /* delay timer */
-uint8_t St; /* sound timer */
-
-uint16_t I;
-
-uint16_t Stack[16];
-uint16_t Sp;
-
-uint16_t Key;
-int32_t Rom_size;
-
+#define DATA_REGISTER_NUMBER 16
+#define STACK_MEM 16
 #define FONT_ADDR 0x0010 /* font adress in memory */
 #define CHAR_ENCODED 5 /* bytes */
 #define NUMBER_OF_CHAR 16
+
+
+struct st_stack {
+    uint16_t addr[STACK_MEM];
+    uint16_t p;
+};
+
+typedef struct emu {
+    uint8_t memory[MEMORY_SIZE];
+    int32_t rom_size;
+    uint16_t key;
+    uint8_t gfx[WIDTH * HEIGHT]; /* graphic */
+    uint8_t v[DATA_REGISTER_NUMBER]; /* data register */
+    uint8_t dt; /* delay timer */
+    uint8_t st; /* sound timer */
+    uint16_t i;
+    struct st_stack stack;
+    uint16_t pc;
+    uint16_t opcode;
+} st_emu;
+
 
 /* CHIP 8 description */
 /* ---
@@ -83,52 +89,56 @@ int32_t Rom_size;
  */
 
 int32_t emu_init_gfx(void);
-uint16_t emu_decode_opcode(uint16_t opcode, uint16_t pc);
-uint16_t emu_fetch_opcode(uint16_t pc);
-uint16_t emu_mainloop(uint16_t pc);
-uint16_t emu_opcode_00E0(uint16_t pc);
-uint16_t emu_opcode_00EE(uint16_t pc);
+void emu_decode_opcode(st_emu *emu);
+uint16_t emu_fetch_opcode(uint8_t *mem, uint16_t pc);
+void emu_mainloop(st_emu *emu);
+uint16_t emu_opcode_00E0(uint8_t *gfx, uint16_t pc);
+uint16_t emu_opcode_00EE(struct st_stack *s);
 uint16_t emu_opcode_0NNN(uint16_t pc);
-uint16_t emu_opcode_1NNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_2NNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_3XNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_4XNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_5XY0(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_6XNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_7XNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY0(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY1(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY2(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY3(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY4(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY5(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY6(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XY7(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_8XYE(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_9XY0(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_ANNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_BNNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_CXNN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_DXYN(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_EX9E(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_EXA1(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX07(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX0A(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX15(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX18(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX1E(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX29(uint16_t pc);
-uint16_t emu_opcode_FX33(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX55(uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX65(uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_1NNN(uint16_t opcode);
+uint16_t emu_opcode_2NNN(struct st_stack *s, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_3XNN(const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_4XNN(const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_5XY0(const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_6XNN(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_7XNN(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY0(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY1(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY2(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY3(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY4(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY5(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY6(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XY7(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_8XYE(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_9XY0(const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_ANNN(uint16_t *i, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_BNNN(const uint8_t *v, uint16_t opcode);
+uint16_t emu_opcode_CXNN(uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_DXYN(const uint8_t *mem, uint8_t *gfx, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_EX9E(const uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_EXA1(const uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX07(uint8_t *v, uint8_t dt, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX0A(uint16_t *k, const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX15(uint8_t *dt, const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX18(uint8_t *st, const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX1E(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX29(uint16_t *i, uint16_t pc);
+uint16_t emu_opcode_FX33(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX55(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX65(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
 uint32_t emu_timespec2nsec(struct timespec t);
 double emu_d_compute_freq(struct timespec t);
 void emu_nanosleep(uint32_t freq, struct timespec t);
-void emu_process_input(void);
-void emu_load_rom(char *path);
+void emu_process_input(uint16_t *k);
+void emu_load_rom(st_emu *emu, char *path);
 void emu_free_gfx(void);
-void emu_print_gfx(int32_t x0, int32_t y0);
+void emu_print_gfx(uint8_t *gfx, int32_t x0, int32_t y0);
 struct timespec emu_difftimespec(struct timespec t1, struct timespec t2);
 struct timespec emu_gettime(void);
+
+#ifdef DEBUG
+   void test(void);
+#endif
 
 #endif

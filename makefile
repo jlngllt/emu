@@ -1,18 +1,15 @@
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 BIN := emu
-SYMBOLS :=
+SYMBOLS := -DDEBUG
 CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
 LDFLAGS := -lncurses -lrt
 
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(SYMBOLS) $^ -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
-debug: $(OBJ)
-	@echo $^
-	$(CC) $(CFLAGS) $(LDFLAGS) -DDEBUG $(SYMBOLS) $^ -o $(BIN)
-
-run: ; ./$(BIN) rom/PONG
+run: $(BIN)
+	./$(BIN) rom/PONG
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
