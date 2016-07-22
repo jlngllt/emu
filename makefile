@@ -3,7 +3,7 @@ OBJ := $(SRC:.c=.o)
 BIN := emu
 SYMBOLS := -DDEBUG
 CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
-LDFLAGS := -lncurses -lrt
+LDFLAGS := -lncurses
 
 $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@

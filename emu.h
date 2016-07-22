@@ -10,6 +10,11 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #define FREQ_SYNC 60.
 #define DEFAULT_ROM "./rom/PONG"
 
@@ -93,7 +98,7 @@ void emu_decode_opcode(st_emu *emu);
 uint16_t emu_fetch_opcode(uint8_t *mem, uint16_t pc);
 void emu_mainloop(st_emu *emu);
 uint16_t emu_opcode_00E0(uint8_t *gfx, uint16_t pc);
-uint16_t emu_opcode_00EE(struct st_stack *s);
+uint16_t emu_opcode_00EE(struct st_stack *s, uint16_t pc);
 uint16_t emu_opcode_0NNN(uint16_t pc);
 uint16_t emu_opcode_1NNN(uint16_t opcode);
 uint16_t emu_opcode_2NNN(struct st_stack *s, uint16_t opcode, uint16_t pc);

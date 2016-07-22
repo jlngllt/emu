@@ -36,17 +36,26 @@ void emu_load_rom(st_emu *emu, char *path)
 
    fread(&(emu->memory[0x200]), MEMORY_SIZE - 0x200, 1, f);
    fseek(f, 0L, SEEK_END);
-   emu->rom_size = ftell(f);
+   emu->rom_size = (int32_t)ftell(f);
 }
 
 struct timespec emu_gettime()
 {
    struct timespec t;
 
-   if (clock_gettime(CLOCK_REALTIME, &t) == -1) {
-      perror("clock gettime");
-      exit(EXIT_FAILURE);
-   }
+#ifdef __MACH__ /* OS X does not have clock_gettime, use clock_get_time */
+   clock_serv_t cclock;
+   mach_timespec_t mts;
+   host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+   clock_get_time(cclock, &mts);
+   mach_port_deallocate(mach_task_self(), cclock);
+   t.tv_sec = mts.tv_sec;
+   t.tv_nsec = mts.tv_nsec;
+
+#else
+   clock_gettime(CLOCK_REALTIME, &t);
+#endif
+
    return t;
 }
 
@@ -69,7 +78,7 @@ void emu_nanosleep(uint32_t freq, struct timespec t)
    double period = 1. / (double)freq;
 
    t_period.tv_sec  = 0;
-   t_period.tv_nsec = (__time_t)(period * (double)1000000000L);
+   t_period.tv_nsec = (long)(period * (double)1000000000L);
    t_sleep = emu_difftimespec(t, t_period);
 
    nanosleep(&t_sleep, NULL);
@@ -106,14 +115,14 @@ uint16_t emu_opcode_00E0(uint8_t *gfx, uint16_t pc)
 /*
  * Returns from a subroutine.
  */
-uint16_t emu_opcode_00EE(struct st_stack *s)
+uint16_t emu_opcode_00EE(struct st_stack *s, uint16_t pc)
 {
-   uint16_t pc;
+   uint16_t tmp_pc = pc;
    if (s->p > 0) {
-      pc = s->addr[s->p - 1];
+      tmp_pc = s->addr[s->p - 1];
       s->p = (uint16_t)(s->p- 1);
    }
-   return pc;
+   return tmp_pc;
 }
 
 /*
@@ -257,7 +266,7 @@ uint16_t emu_opcode_8XY6(uint8_t *v, uint16_t opcode, uint16_t pc)
    uint8_t tmp;
 
    tmp = v[GET_0100(opcode)];
-   v[GET_0100(opcode)] = (uint16_t)(tmp >> 1);
+   v[GET_0100(opcode)] = (uint8_t)(tmp >> 1);
    return (uint16_t)(pc + 2);
 }
 
@@ -495,7 +504,7 @@ void emu_decode_opcode(st_emu *emu)
          if (GET_0011(opcode) == 0xE0)
             *p_pc = emu_opcode_00E0(emu->gfx, pc);
          else if (GET_0011(opcode) == 0xEE)
-            *p_pc = emu_opcode_00EE(&emu->stack);
+            *p_pc = emu_opcode_00EE(&emu->stack, pc);
          else
             *p_pc = emu_opcode_0NNN(pc);
       break;
@@ -642,6 +651,7 @@ int32_t main(int32_t argc, char *argv[])
 
    emu.pc = INIT_ADDR;
    emu.i = 0;
+   memset(&emu.memory, 0, sizeof(uint8_t) * MEMORY_SIZE);
    memset(&emu.v, 0, sizeof(uint8_t) * DATA_REGISTER_NUMBER);
    memset(&emu.stack, 0, sizeof(struct st_stack));
    memset(&emu.gfx, 0, sizeof(uint8_t) * WIDTH * HEIGHT);
