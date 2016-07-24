@@ -269,33 +269,110 @@ void test(void)
       assert(test_emu.v[0xf] == 0x0);
    }
 
-#if 0
    /* 8XY6 */
    {
       pc = 0;
-      opcode = 0x8f86;
-      test_emu.v[0xf] = 0xe5;
-      test_emu.v[8] = 0x08;
-      emu_opcode_8XY6(test_emu.v, opcode, pc);
+      opcode = 0x8086;
+      test_emu.v[0x0] = 0x02;
+      pc = emu_opcode_8XY6(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x0] == 0x01);
+      assert(test_emu.v[0xf] == 0x00);
+      assert(pc == 2);
+
+      pc = 0;
+      opcode = 0x8086;
+      test_emu.v[0x0] = 0x03;
+      pc = emu_opcode_8XY6(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x0] == 0x01);
+      assert(test_emu.v[0xf] == 0x01);
       assert(pc == 2);
    }
 
    /* 8XY7 */
    {
       pc = 0;
-      opcode = 0x8f87;
-      test_emu.v[0xf] = 0xe5;
-      test_emu.v[8] = 0x08;
-      emu_opcode_8XY7(test_emu.v, opcode, pc);
+      opcode = 0x8127;
+      test_emu.v[0x1] = 0xe5;
+      test_emu.v[0x2] = 0xe5;
+      pc = emu_opcode_8XY7(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x1] == 0x00);
+      assert(test_emu.v[0xf] == 0x01);
+
+      pc = 0;
+      opcode = 0x8127;
+      test_emu.v[0x1] = 0xe5;
+      test_emu.v[0x2] = 0xe6;
+      pc = emu_opcode_8XY7(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x1] == 0x01);
+      assert(test_emu.v[0xf] == 0x01);
+      assert(pc == 2);
+
+      pc = 0;
+      opcode = 0x8127;
+      test_emu.v[0x1] = 0xe6;
+      test_emu.v[0x2] = 0xe5;
+      pc = emu_opcode_8XY7(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x1] == 0xff);
+      assert(test_emu.v[0xf] == 0x00);
       assert(pc == 2);
    }
-#endif
+
+   /* 8XYE */
+   {
+      pc = 0;
+      opcode = 0x812E;
+      test_emu.v[0x1] = 0x81;
+      pc = emu_opcode_8XYE(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x1] == 0x2);
+      assert(test_emu.v[0xf] == 0x1);
+      assert(pc == 2);
+
+      pc = 0;
+      opcode = 0x812E;
+      test_emu.v[0x1] = 0x72;
+      pc = emu_opcode_8XYE(test_emu.v, opcode, pc);
+      assert(test_emu.v[0x1] == 0xe4);
+      assert(test_emu.v[0xf] == 0x0);
+      assert(pc == 2);
+   }
+
+   /* 9XY0 */
+   {
+      pc = 0;
+      opcode = 0x9480;
+      test_emu.v[0x4] = 0x81;
+      test_emu.v[0x8] = 0x81;
+      pc = emu_opcode_9XY0(test_emu.v, opcode, pc);
+      assert(pc == 2);
+
+      pc = 0;
+      opcode = 0x9480;
+      test_emu.v[0x4] = 0x81;
+      test_emu.v[0x8] = 0x82;
+      pc = emu_opcode_9XY0(test_emu.v, opcode, pc);
+      assert(pc == 4);
+   }
+
+   /* ANNN */
+   {
+      pc = 0;
+      test_emu.i = 0;
+      opcode = 0xA123;
+      pc = emu_opcode_ANNN(&test_emu.i, opcode, pc);
+      assert(test_emu.i == 0x123);
+      assert(pc == 2);
+   }
+
+   /* BNNN */
+   {
+      pc = 0;
+      opcode = 0xB123;
+      test_emu.v[0] = 0x1;
+      pc = emu_opcode_BNNN(test_emu.v, opcode);
+      assert(pc == 0x0124);
+   }
 
 #if 0
-emu_opcode_8XYE(uint8_t *v, uint16_t opcode, uint16_t pc);
-emu_opcode_9XY0(const uint8_t *v, uint16_t opcode, uint16_t pc);
-emu_opcode_ANNN(uint16_t *i, uint16_t opcode, uint16_t pc);
-emu_opcode_BNNN(const uint8_t *v, uint16_t opcode);
 emu_opcode_CXNN(uint8_t *v, uint16_t opcode, uint16_t pc);
 emu_opcode_DXYN(const uint8_t *mem, uint8_t *gfx, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
 emu_opcode_EX9E(const uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);

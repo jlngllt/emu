@@ -266,6 +266,7 @@ uint16_t emu_opcode_8XY6(uint8_t *v, uint16_t opcode, uint16_t pc)
    uint8_t tmp;
 
    tmp = v[GET_0100(opcode)];
+   v[0xf] = (v[GET_0100(opcode)] & 0x01);
    v[GET_0100(opcode)] = (uint8_t)(tmp >> 1);
    return (uint16_t)(pc + 2);
 }
@@ -276,7 +277,7 @@ uint16_t emu_opcode_8XY6(uint8_t *v, uint16_t opcode, uint16_t pc)
  */
 uint16_t emu_opcode_8XY7(uint8_t *v, uint16_t opcode, uint16_t pc)
 {
-   if (v[GET_0010(opcode)] > v[GET_0100(opcode)])
+   if (v[GET_0010(opcode)] >= v[GET_0100(opcode)])
       v[0xF] = 1;
    else
       v[0xF] = 0;
@@ -293,6 +294,7 @@ uint16_t emu_opcode_8XYE(uint8_t *v, uint16_t opcode, uint16_t pc)
    uint8_t tmp;
 
    tmp = v[GET_0100(opcode)];
+   v[0xf] = v[GET_0100(opcode)] & 0x80 >> 7;
    v[GET_0100(opcode)] = (uint8_t)(tmp << 1);
    return (uint16_t)(pc + 2);
 }
@@ -321,9 +323,7 @@ uint16_t emu_opcode_ANNN(uint16_t *i, uint16_t opcode, uint16_t pc)
  */
 uint16_t emu_opcode_BNNN(const uint8_t *v, uint16_t opcode)
 {
-   uint16_t pc;
-   pc = (uint16_t)(GET_0111(opcode) + v[0]);
-   return (uint16_t)(pc + 2);
+   return (uint16_t)(GET_0111(opcode) + v[0]);
 }
 
 /*
