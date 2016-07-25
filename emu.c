@@ -431,16 +431,7 @@ uint16_t emu_opcode_FX18(uint8_t *st, const uint8_t *v, uint16_t opcode, uint16_
  */
 uint16_t emu_opcode_FX1E(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc)
 {
-   uint16_t tmp_i = *i;
-#ifdef DEBUG
-   print_FUCK(tmp_i, v[GET_0100(opcode)], opcode);
-#endif
-
-   *i  = (uint16_t)(tmp_i + v[GET_0100(opcode)]);
-
-#ifdef DEBUG
-   print_FUCK_1(*i);
-#endif
+   *i = (uint16_t)(*i + v[GET_0100(opcode)]);
    return (uint16_t)(pc + 2);
 }
 
