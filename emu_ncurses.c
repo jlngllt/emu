@@ -1,28 +1,34 @@
 #include "emu.h"
 #include <ncurses.h>
 
-void emu_process_input(uint16_t *k)
+void emu_process_input(int *k)
 {
-   int32_t c = wgetch(stdscr);
-   switch (c) {
-      case '7': *k = 0x1; break;
-      case '8': *k = 0x2; break;
-      case '9': *k = 0x3; break;
-      case '0': *k = 0xc; break;
-      case 'u': *k = 0x4; break;
-      case 'i': *k = 0x5; break;
-      case 'o': *k = 0x6; break;
-      case 'p': *k = 0xd; break;
-      case 'j': *k = 0x7; break;
-      case 'k': *k = 0x8; break;
-      case 'l': *k = 0x9; break;
-      case 'm': *k = 0xe; break;
-      case ',': *k = 0xa; break;
-      case ';': *k = 0x0; break;
-      case ':': *k = 0xb; break;
-      case '!': *k = 0xf; break;
-      default: *k = *k; break;
+   int c = 0;
+   c = wgetch(stdscr);
+   switch (c)
+   {
+      case '1' : *k = 0x1; break;
+      case '2' : *k = 0x2; break;
+      case '3' : *k = 0x3; break;
+      case '4' : *k = 0xc; break;
+      case 'a' : *k = 0x4; break;
+      case 'z' : *k = 0x5; break;
+      case 'e' : *k = 0x6; break;
+      case 'r' : *k = 0xd; break;
+      case 'q' : *k = 0x7; break;
+      case 's' : *k = 0x8; break;
+      case 'd' : *k = 0x9; break;
+      case 'f' : *k = 0xe; break;
+      case 'w' : *k = 0xa; break;
+      case 'x' : *k = 0x0; break;
+      case 'c' : *k = 0xb; break;
+      case 'v' : *k = 0xf; break;
+      case KEY_RIGHT: *k = c; break;
+      case ERR :
+      default :
+      break;
    }
+
 }
 
 void emu_print_gfx(uint8_t *gfx, int32_t x0, int32_t y0)
@@ -42,11 +48,7 @@ int32_t emu_init_gfx(void)
    cbreak();
    curs_set(0);
    keypad(stdscr, TRUE);
-#ifdef DEBUG
-   nodelay(stdscr, FALSE);
-#else
-   nodelay(stdscr, TRUE);
-#endif
+   nodelay(stdscr, true);
 
    return 0;
 }

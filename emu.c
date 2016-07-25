@@ -429,7 +429,16 @@ uint16_t emu_opcode_FX18(uint8_t *st, const uint8_t *v, uint16_t opcode, uint16_
  */
 uint16_t emu_opcode_FX1E(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc)
 {
-   *i  = (uint16_t)(*i + v[GET_0100(opcode)]);
+   uint16_t tmp_i = *i;
+#ifdef DEBUG
+   print_FUCK(tmp_i, v[GET_0100(opcode)], opcode);
+#endif
+
+   *i  = (uint16_t)(tmp_i + v[GET_0100(opcode)]);
+
+#ifdef DEBUG
+   print_FUCK_1(*i);
+#endif
    return (uint16_t)(pc + 2);
 }
 
@@ -478,7 +487,7 @@ uint16_t emu_opcode_FX65(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, 
    uint8_t j = 0;
 
    for (j = 0; j <= GET_0100(opcode); j++)
-      mem[i + j] = v[j];
+       v[j] = mem[i + j];
    return (uint16_t)(pc + 2);
 }
 
@@ -621,22 +630,24 @@ void emu_decode_opcode(st_emu *emu)
 void emu_mainloop(st_emu *emu)
 {
    struct timespec t1, t2;
+   static int key = 0;
 
    t1 = emu_gettime();
 
-   emu_process_input(&emu->key);
+   emu_process_input(&key);
+   emu->key = (uint16_t)key;
    emu->opcode = emu_fetch_opcode(emu->memory, emu->pc);
    emu_decode_opcode(emu);
    if (emu->dt > 0) emu->dt--;
    emu_print_gfx(emu->gfx, 0, 0);
 
    t2 = emu_gettime();
-#ifndef DEBUG
    emu_nanosleep(FREQ_SYNC, emu_difftimespec(t1, t2));
-#endif
 
-#ifdef DEBUG
+#if DEBUG
    DebugEmu.freq = emu_d_compute_freq(emu_difftimespec(t1, emu_gettime()));
+   DebugEmu.cycle = 0;
+   DebugEmu.key = key;
    memcpy(&DebugEmu.prev_emu, &DebugEmu.emu, sizeof(st_emu));
    memcpy(&DebugEmu.emu, emu, sizeof(st_emu));
    emu_debug_draw(&DebugEmu);

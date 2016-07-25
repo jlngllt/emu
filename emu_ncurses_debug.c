@@ -56,7 +56,9 @@ void emu_debug_draw(struct debug_emu *d)
 {
    int i = 0;
    emu_debug_draw_mem(d->emu.memory, d->prev_emu.memory, d->emu.rom_size, d->emu.pc, d->prev_emu.pc, 30, WIDTH + 1 , 0);
-   mvprintw(HEIGHT  + 1,  0, "frequence : %g", d->freq);
+   mvprintw(HEIGHT  + 1,  0, "frequence : %04.4g", d->freq);
+   mvprintw(HEIGHT  + 1,  20, "cycle : %05d", d->cycle);
+   mvprintw(HEIGHT  + 1,  35, "Key  : %05d", d->key);
    mvprintw(HEIGHT  + 2,  0, "Pc        : ");
    PRINT_STYLE(HEIGHT + 2,  12, "0x%02x", pc);
    mvprintw(HEIGHT  + 3,  0, "opcode    : ");
@@ -81,4 +83,13 @@ void emu_debug_draw(struct debug_emu *d)
    }
    mvprintw(HEIGHT  + 14,  0, "Sp       : ");
    PRINT_STYLE(HEIGHT + 14,  12, "0x%02x", stack.p);
+}
+
+void print_FUCK(uint16_t i, uint8_t v, uint16_t opcode)
+{
+   mvprintw(HEIGHT  + 14,  0, "i = 0x%04x; v = 0x%02x; opcode = 0x%04x ", i, v, opcode);
+}
+void print_FUCK_1(uint16_t res)
+{
+   mvprintw(HEIGHT  + 15,  0, "res = 0x%04x", res);
 }

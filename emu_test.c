@@ -58,6 +58,7 @@ void test(void)
       }
       assert(pc == 2);
    }
+
    /* 00EE */
    {
       pc = 0;
@@ -68,7 +69,6 @@ void test(void)
       assert(pc == 0x1234);
       assert(test_emu.stack.p == 0);
    }
-
 
    /* 1NNN */
    {
@@ -506,13 +506,13 @@ void test(void)
    /* FX33 */
    {
       pc = 0;
-      opcode = 0xf533;
+      opcode = 0xfe33;
       test_emu.i = 0x50;
-      test_emu.v[5] = 0x7B; /* 123 */
+      test_emu.v[0xe] = 0x00; /* 123 */
       pc = emu_opcode_FX33(test_emu.memory, test_emu.v, test_emu.i, opcode, pc);
-      assert(test_emu.memory[test_emu.i    ] == 1);
-      assert(test_emu.memory[test_emu.i + 1] == 2);
-      assert(test_emu.memory[test_emu.i + 2] == 3);
+      assert(test_emu.memory[test_emu.i    ] == 0);
+      assert(test_emu.memory[test_emu.i + 1] == 0);
+      assert(test_emu.memory[test_emu.i + 2] == 0);
       assert(pc == 2);
    }
 
@@ -535,11 +535,14 @@ void test(void)
    {
       pc = 0;
       opcode = 0xF265;
-      test_emu.i = 0x50;
+      test_emu.i = 0x80;
+      test_emu.memory[test_emu.i] = 0x12;
+      test_emu.memory[test_emu.i + 1] = 0x12;
+      test_emu.memory[test_emu.i + 2] = 0x45;
       pc = emu_opcode_FX65(test_emu.memory, test_emu.v, test_emu.i, opcode, pc);
       assert(test_emu.v[0] == 0x12);
-      assert(test_emu.v[1] == 0x34);
-      assert(test_emu.v[2] == 0x56);
+      assert(test_emu.v[1] == 0x12);
+      assert(test_emu.v[2] == 0x45);
       assert(pc == 2);
    }
 }

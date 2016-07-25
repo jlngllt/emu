@@ -135,7 +135,7 @@ uint16_t emu_opcode_FX65(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, 
 uint32_t emu_timespec2nsec(struct timespec t);
 double emu_d_compute_freq(struct timespec t);
 void emu_nanosleep(uint32_t freq, struct timespec t);
-void emu_process_input(uint16_t *k);
+void emu_process_input(int *k);
 void emu_load_rom(st_emu *emu, char *path);
 void emu_free_gfx(void);
 void emu_print_gfx(uint8_t *gfx, int32_t x0, int32_t y0);
