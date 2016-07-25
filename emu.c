@@ -331,7 +331,9 @@ uint16_t emu_opcode_BNNN(const uint8_t *v, uint16_t opcode)
 uint16_t emu_opcode_CXNN(uint8_t *v, uint16_t opcode, uint16_t pc)
 {
    int random = 0;
-   srand((unsigned int)(time(NULL)));
+   struct timespec t;
+   t = emu_gettime();
+   srand((unsigned int)t.tv_nsec);
    random = rand();
 
    v[GET_0100(opcode)] = (uint8_t)((random & 0xFF) & GET_0011(opcode));
@@ -359,7 +361,7 @@ uint16_t emu_opcode_DXYN(const uint8_t *mem, uint8_t *gfx, uint8_t *v, uint16_t 
    for (i_row = 0; i_row < nb_of_row; i_row++) {
       for (j_col = 0; j_col < 8; j_col++) {
          pix = (mem[i + i_row] >> (7 - j_col)) & 0x01;
-         if (gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] != pix) {
+         if (gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] == pix && pix == 1) {
             v[0xF] = 1;
          }
          gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] ^= pix;

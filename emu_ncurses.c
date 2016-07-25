@@ -7,23 +7,23 @@ void emu_process_input(int *k)
    c = wgetch(stdscr);
    switch (c)
    {
-      case '1' : *k = 0x1; break;
+      case 'i' : *k = 0x1; break;
       case '2' : *k = 0x2; break;
       case '3' : *k = 0x3; break;
-      case '4' : *k = 0xc; break;
-      case 'a' : *k = 0x4; break;
+      case KEY_UP : *k = 0xc; break;
+      case 'k' : *k = 0x4; break;
       case 'z' : *k = 0x5; break;
       case 'e' : *k = 0x6; break;
-      case 'r' : *k = 0xd; break;
-      case 'q' : *k = 0x7; break;
+      case KEY_DOWN : *k = 0xd; break;
+      case 'j' : *k = 0x7; break;
       case 's' : *k = 0x8; break;
       case 'd' : *k = 0x9; break;
-      case 'f' : *k = 0xe; break;
-      case 'w' : *k = 0xa; break;
+      case KEY_LEFT:
+      case KEY_RIGHT : *k = 0xe; break;
+      case 'l' : *k = 0xa; break;
       case 'x' : *k = 0x0; break;
       case 'c' : *k = 0xb; break;
       case 'v' : *k = 0xf; break;
-      case KEY_RIGHT: *k = c; break;
       case ERR :
       default :
       break;
