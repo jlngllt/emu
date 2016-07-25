@@ -5,6 +5,11 @@ SYMBOLS := -DDEBUG
 CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
 LDFLAGS := -lncurses
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	LDFLAGS += -lrt
+endif
+
 $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 

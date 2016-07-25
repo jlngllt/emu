@@ -124,11 +124,11 @@ uint16_t emu_opcode_DXYN(const uint8_t *mem, uint8_t *gfx, uint8_t *v, uint16_t 
 uint16_t emu_opcode_EX9E(const uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_EXA1(const uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX07(uint8_t *v, uint8_t dt, uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX0A(uint16_t *k, const uint8_t *v, uint16_t opcode, uint16_t pc);
+uint16_t emu_opcode_FX0A(uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX15(uint8_t *dt, const uint8_t *v, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX18(uint8_t *st, const uint8_t *v, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX1E(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc);
-uint16_t emu_opcode_FX29(uint16_t *i, uint16_t pc);
+uint16_t emu_opcode_FX29(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX33(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX55(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);
 uint16_t emu_opcode_FX65(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, uint16_t pc);

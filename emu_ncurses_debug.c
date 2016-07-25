@@ -19,7 +19,7 @@
    } while (0) \
 
 
-void emu_debug_draw_mem(const uint8_t *mem, int32_t rom_size, uint16_t emu_pc, uint8_t n_line, uint8_t x0, uint8_t y0)
+void emu_debug_draw_mem(const uint8_t *mem, const uint8_t *prev_mem, int32_t rom_size, uint16_t emu_pc, uint16_t prev_emu_pc, uint8_t n_line, uint8_t x0, uint8_t y0)
 {
    int32_t pc, j, x, y, i_elem;
    int32_t size_total = (rom_size + INIT_ADDR);
@@ -29,7 +29,17 @@ void emu_debug_draw_mem(const uint8_t *mem, int32_t rom_size, uint16_t emu_pc, u
       attroff(A_STANDOUT);
       if (i_elem == (emu_pc / 2))
          attron(A_STANDOUT);
-      mvprintw(y0 + y, x0 + x, "%02x%02x", mem[pc], mem[pc + 1]);
+      attroff(A_UNDERLINE);
+      if (i_elem == (prev_emu_pc / 2))
+         attron(A_UNDERLINE);
+      if (prev_mem[pc] != mem[pc] || prev_mem[pc + 1] != mem[pc + 1])
+      {
+         attron(A_STANDOUT);
+         mvprintw(y0 + y, x0 + x, "%02x%02x", mem[pc], mem[pc + 1]);
+      } else {
+         mvprintw(y0 + y, x0 + x, "%02x%02x", mem[pc], mem[pc + 1]);
+      }
+      attroff(A_STANDOUT);
       /* nombre de ligne sur lequel on affiche la mémoire */
       if (x > (size_print_elem * (size_total / 2)) / n_line) {
          y++;
@@ -45,14 +55,14 @@ void emu_debug_draw_mem(const uint8_t *mem, int32_t rom_size, uint16_t emu_pc, u
 void emu_debug_draw(struct debug_emu *d)
 {
    int i = 0;
-   emu_debug_draw_mem(d->emu.memory, d->emu.rom_size, d->emu.pc, 30, WIDTH + 1 , 0);
+   emu_debug_draw_mem(d->emu.memory, d->prev_emu.memory, d->emu.rom_size, d->emu.pc, d->prev_emu.pc, 30, WIDTH + 1 , 0);
    mvprintw(HEIGHT  + 1,  0, "frequence : %g", d->freq);
    mvprintw(HEIGHT  + 2,  0, "Pc        : ");
    PRINT_STYLE(HEIGHT + 2,  12, "0x%02x", pc);
    mvprintw(HEIGHT  + 3,  0, "opcode    : ");
    PRINT_STYLE(HEIGHT + 3,  12, "0x%02x", opcode);
    mvprintw(HEIGHT  + 4,  0, "I         : ");
-   PRINT_STYLE(HEIGHT + 4,  12, "0x%02x", i);
+   PRINT_STYLE(HEIGHT + 4,  12, "0x%04x", i);
    mvprintw(HEIGHT  + 5,  0, "Dt        : ");
    PRINT_STYLE(HEIGHT + 5,  12, "0x%02x", dt);
    mvprintw(HEIGHT  + 7,  0, "V /");

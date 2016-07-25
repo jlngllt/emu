@@ -99,7 +99,6 @@ double emu_d_compute_freq(struct timespec t)
  */
 uint16_t emu_opcode_0NNN(uint16_t pc)
 {
-   printf("usesless no ? :'(\n");
    return (uint16_t)(pc + 2);
 }
 
@@ -120,7 +119,7 @@ uint16_t emu_opcode_00EE(struct st_stack *s, uint16_t pc)
    uint16_t tmp_pc = pc;
    if (s->p > 0) {
       tmp_pc = s->addr[s->p - 1];
-      s->p = (uint16_t)(s->p- 1);
+      s->p = (uint16_t)(s->p - 1);
    }
    return tmp_pc;
 }
@@ -331,10 +330,11 @@ uint16_t emu_opcode_BNNN(const uint8_t *v, uint16_t opcode)
  */
 uint16_t emu_opcode_CXNN(uint8_t *v, uint16_t opcode, uint16_t pc)
 {
-   int random = rand();
+   int random = 0;
+   srand((unsigned int)(time(NULL)));
+   random = rand();
 
-   srand((unsigned int)(random));
-   v[GET_0100(opcode)] = (uint8_t)((random % 0xFF) & GET_0011(opcode));
+   v[GET_0100(opcode)] = (uint8_t)((random & 0xFF) & GET_0011(opcode));
    return (uint16_t)(pc + 2);
 }
 
@@ -359,10 +359,10 @@ uint16_t emu_opcode_DXYN(const uint8_t *mem, uint8_t *gfx, uint8_t *v, uint16_t 
    for (i_row = 0; i_row < nb_of_row; i_row++) {
       for (j_col = 0; j_col < 8; j_col++) {
          pix = (mem[i + i_row] >> (7 - j_col)) & 0x01;
-         if (gfx[(WIDTH * (y + i_row)) + (x + j_col)] != pix) {
+         if (gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] != pix) {
             v[0xF] = 1;
          }
-         gfx[(WIDTH * (y + i_row)) + (x + j_col)] ^= pix;
+         gfx[(WIDTH * ((y + i_row) % HEIGHT)) + ((x + j_col) % WIDTH)] ^= pix;
       }
    }
    return (uint16_t)(pc + 2);
@@ -400,9 +400,9 @@ uint16_t emu_opcode_FX07(uint8_t *v, uint8_t dt, uint16_t opcode, uint16_t pc)
 /*
  * A key press is awaited, and then stored in VX.
  */
-uint16_t emu_opcode_FX0A(uint16_t *k, const uint8_t *v, uint16_t opcode, uint16_t pc)
+uint16_t emu_opcode_FX0A(uint8_t *v, uint16_t k, uint16_t opcode, uint16_t pc)
 {
-   *k = v[GET_0100(opcode)];
+   v[GET_0100(opcode)] = (uint8_t)k;
    return (uint16_t)(pc + 2);
 }
 
@@ -437,9 +437,9 @@ uint16_t emu_opcode_FX1E(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_
  * Sets I to the location of the sprite for the character in VX. Characters 0-F
  * (in hexadecimal) are represented by a 4x5 font.
  */
-uint16_t emu_opcode_FX29(uint16_t *i, uint16_t pc)
+uint16_t emu_opcode_FX29(uint16_t *i, const uint8_t *v, uint16_t opcode, uint16_t pc)
 {
-   *i = FONT_ADDR;
+   *i = (uint16_t)(FONT_ADDR  + (uint16_t)(v[GET_0100(opcode)] * CHAR_ENCODED));
    return (uint16_t)(pc + 2);
 }
 
@@ -454,7 +454,7 @@ uint16_t emu_opcode_FX33(uint8_t *mem, uint8_t *v, uint16_t i, uint16_t opcode, 
 {
    mem[i] = v[GET_0100(opcode)] / 100;
    mem[i + 1] = (v[GET_0100(opcode)] / 10) % 10;
-   mem[i + 2] = (v[GET_0100(opcode)] / 100) % 10;
+   mem[i + 2] = v[GET_0100(opcode)] % 10;
    return (uint16_t)(pc + 2);
 }
 
@@ -593,7 +593,7 @@ void emu_decode_opcode(st_emu *emu)
          if (GET_0011(opcode) == 0x07)
             *p_pc = emu_opcode_FX07(emu->v, emu->dt, opcode, pc);
          else if (GET_0011(opcode) == 0x0A)
-            *p_pc = emu_opcode_FX0A(&emu->key, emu->v, opcode, pc);
+            *p_pc = emu_opcode_FX0A(emu->v, emu->key, opcode, pc);
          else if (GET_0011(opcode) == 0x15)
             *p_pc = emu_opcode_FX15(&emu->dt, emu->v, opcode, pc);
          else if (GET_0011(opcode) == 0x18)
@@ -601,7 +601,7 @@ void emu_decode_opcode(st_emu *emu)
          else if (GET_0011(opcode) == 0x1E)
             *p_pc = emu_opcode_FX1E(&emu->i, emu->v, opcode, pc);
          else if (GET_0011(opcode) == 0x29)
-            *p_pc = emu_opcode_FX29(&emu->i, pc);
+            *p_pc = emu_opcode_FX29(&emu->i, emu->v, opcode, pc);
          else if (GET_0011(opcode) == 0x33)
             *p_pc = emu_opcode_FX33(emu->memory, emu->v, emu->i, opcode, pc);
          else if (GET_0011(opcode) == 0x55)
@@ -663,8 +663,6 @@ int32_t main(int32_t argc, char *argv[])
    if (argc > 1)
       rom = argv[1];
 
-   /* init random */
-   srand((unsigned int)(time(NULL)));
    /* charge la font */
    memcpy(&emu.memory[FONT_ADDR],
          Chip8_fontset,
@@ -673,7 +671,6 @@ int32_t main(int32_t argc, char *argv[])
    /* charge la rom */
    emu_load_rom(&emu, rom);
    emu_init_gfx();
-
 
    while (1)
       emu_mainloop(&emu);
