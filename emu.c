@@ -19,10 +19,6 @@ uint8_t Chip8_fontset[CHAR_ENCODED * NUMBER_OF_CHAR] = {
    0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
 };
 
-#ifdef DEBUG
-   #include "emu_debug.h"
-   struct debug_emu DebugEmu;
-#endif
 
 
 void emu_load_rom(st_emu *emu, char *path)
@@ -620,33 +616,6 @@ void emu_decode_opcode(st_emu *emu)
    }
 }
 
-void emu_mainloop(st_emu *emu)
-{
-   struct timespec t1, t2;
-   static int key = 0;
-
-   t1 = emu_gettime();
-
-   emu_process_input(&key);
-   emu->key = (uint16_t)key;
-   emu->opcode = emu_fetch_opcode(emu->memory, emu->pc);
-   emu_decode_opcode(emu);
-   if (emu->dt > 0) emu->dt--;
-   emu_print_gfx(emu->gfx, 0, 0);
-
-   t2 = emu_gettime();
-   emu_nanosleep(FREQ_SYNC, emu_difftimespec(t1, t2));
-
-#if DEBUG
-   DebugEmu.freq = emu_d_compute_freq(emu_difftimespec(t1, emu_gettime()));
-   DebugEmu.cycle = 0;
-   DebugEmu.key = key;
-   memcpy(&DebugEmu.prev_emu, &DebugEmu.emu, sizeof(st_emu));
-   memcpy(&DebugEmu.emu, emu, sizeof(st_emu));
-   emu_debug_draw(&DebugEmu);
-#endif
-}
-
 int32_t main(int32_t argc, char *argv[])
 {
    /* rom par default */
@@ -676,8 +645,7 @@ int32_t main(int32_t argc, char *argv[])
    emu_load_rom(&emu, rom);
    emu_init_gfx();
 
-   while (1)
-      emu_mainloop(&emu);
+   emu_mainloop(&emu);
 
    emu_free_gfx();
    return 0;

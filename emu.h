@@ -36,7 +36,6 @@
 #define CHAR_ENCODED 5 /* bytes */
 #define NUMBER_OF_CHAR 16
 
-
 struct st_stack {
     uint16_t addr[STACK_MEM];
     uint16_t p;

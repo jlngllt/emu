@@ -1,8 +1,11 @@
-SRC := $(wildcard *.c)
+#SRC := emu.c emu_test.c emu_opengl.c
+SRC := emu.c emu_test.c emu_ncurses.c emu_ncurses_debug.c
 OBJ := $(SRC:.c=.o)
 BIN := emu
 SYMBOLS := -DDEBUG
 CFLAGS := -std=c89 -g -Wall -Wextra -pedantic -Wconversion $(SYMBOLS)
+
+#LDFLAGS := -lGLEW -lglut
 LDFLAGS := -lncurses
 
 UNAME_S := $(shell uname -s)
@@ -21,7 +24,7 @@ run: $(BIN)
 
 clean :
 	$(RM) $(BIN)
-	$(RM) $(OBJ)
+	$(RM) *.o
 
 # debug
 print-%  : ; @echo $* := $($*)

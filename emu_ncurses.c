@@ -1,6 +1,11 @@
 #include "emu.h"
 #include <ncurses.h>
 
+#ifdef DEBUG
+   #include "emu_debug.h"
+   struct debug_emu DebugEmu;
+#endif
+
 void emu_process_input(int *k)
 {
    int c = 0;
@@ -56,4 +61,34 @@ int32_t emu_init_gfx(void)
 void emu_free_gfx(void)
 {
    endwin();
+}
+
+void emu_mainloop(st_emu *emu)
+{
+   while (1)
+   {
+      struct timespec t1, t2;
+      static int key = 0;
+
+      t1 = emu_gettime();
+
+      emu_process_input(&key);
+      emu->key = (uint16_t)key;
+      emu->opcode = emu_fetch_opcode(emu->memory, emu->pc);
+      emu_decode_opcode(emu);
+      if (emu->dt > 0) emu->dt--;
+      emu_print_gfx(emu->gfx, 0, 0);
+
+      t2 = emu_gettime();
+      emu_nanosleep(FREQ_SYNC, emu_difftimespec(t1, t2));
+
+#if DEBUG
+      DebugEmu.freq = emu_d_compute_freq(emu_difftimespec(t1, emu_gettime()));
+      DebugEmu.cycle = 0;
+      DebugEmu.key = key;
+      memcpy(&DebugEmu.prev_emu, &DebugEmu.emu, sizeof(st_emu));
+      memcpy(&DebugEmu.emu, emu, sizeof(st_emu));
+      emu_debug_draw(&DebugEmu);
+#endif
+   }
 }
